@@ -5,15 +5,39 @@ Checks: >
   readability-*,
   bugprone-*,
   cppcoreguidelines-*,
+  cert-err58-cpp,        # правила CERT C++
+  cert-dcl50-cpp,
+  hicpp-*,
   -modernize-use-trailing-return-type,
   -readability-magic-numbers
 
-WarningsAsErrors: 'clang-analyzer-*,bugprone-*'
+WarningsAsErrors: '*'
 
 HeaderFilterRegex: '.*'
 FormatStyle: file
+
 CheckOptions:
-  - key:             modernize-loop-convert.MinConfidence
-    value:           reasonable
-  - key:             readability-identifier-naming.VariableCase
-    value:           lower_case
+  # Modernize
+  - key: modernize-loop-convert.MinConfidence
+    value: reasonable
+  - key: modernize-use-auto.MinTypeNameLength
+    value: 0
+  - key: modernize-avoid-c-arrays.WarnOnAll
+    value: true
+
+  # Readability
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+
+  # Bugprone / Safety
+  - key: bugprone-suspicious-missing-comma.WarnOnAll
+    value: true
+  - key: cppcoreguidelines-owning-memory.WarnOnAll
+    value: true
+
