@@ -1,0 +1,19 @@
+Checks: >
+  clang-analyzer-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  bugprone-*,
+  cppcoreguidelines-*,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers
+
+WarningsAsErrors: 'clang-analyzer-*,bugprone-*'
+
+HeaderFilterRegex: '.*'
+FormatStyle: file
+CheckOptions:
+  - key:             modernize-loop-convert.MinConfidence
+    value:           reasonable
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
