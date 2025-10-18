@@ -29,9 +29,13 @@ add_executable(reactor-backend ${SOURCES})
 add_executable(reactor-tui ${TUI_SOURCES})
 add_executable(reactor-simulation ${SIMULATION})
 
+add_subdirectory(external/tomlplusplus)
+target_link_libraries(reactor-backend PRIVATE tomlplusplus)
+
 target_include_directories(reactor-backend
                            PRIVATE ${CMAKE_SOURCE_DIR}/includes/backend)
 target_include_directories(reactor-tui PRIVATE ${CMAKE_SOURCE_DIR}/includes/tui)
 target_include_directories(reactor-simulation
                            PRIVATE ${CMAKE_SOURCE_DIR}/includes/simulation)
+
 include_directories(${CMAKE_SOURCE_DIR}/includes/common)
