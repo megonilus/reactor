@@ -1,11 +1,8 @@
-#include <ftxui/dom/elements.hpp>
-#include <ftxui/screen/screen.hpp>
-#include <ftxui/screen/string.hpp>
 #include <iostream>
+#include <tui.hpp>
 
-using namespace ftxui;
 int main()
 {
-
+	tui::Instance::display();
 	return 0;
 }
