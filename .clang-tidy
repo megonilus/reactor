@@ -5,7 +5,7 @@ Checks: >
   readability-*,
   bugprone-*,
   cppcoreguidelines-*,
-  cert-err58-cpp,        # правила CERT C++
+  cert-err58-cpp,
   cert-dcl50-cpp,
   hicpp-*,
   -modernize-use-trailing-return-type,
@@ -17,7 +17,9 @@ HeaderFilterRegex: '.*'
 FormatStyle: file
 
 CheckOptions:
+  # =========================
   # Modernize
+  # =========================
   - key: modernize-loop-convert.MinConfidence
     value: reasonable
   - key: modernize-use-auto.MinTypeNameLength
@@ -25,17 +27,51 @@ CheckOptions:
   - key: modernize-avoid-c-arrays.WarnOnAll
     value: true
 
+  # =========================
   # Readability
+  # =========================
   - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
-  - key: readability-identifier-naming.ClassCase
-    value: CamelCase
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
   - key: readability-identifier-naming.ConstantCase
     value: UPPER_CASE
+  - key: readability-identifier-naming.StaticConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TemplateParameterCase
+    value: CamelCase
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
 
+  # =========================
   # Bugprone / Safety
+  # =========================
   - key: bugprone-suspicious-missing-comma.WarnOnAll
     value: true
   - key: cppcoreguidelines-owning-memory.WarnOnAll
