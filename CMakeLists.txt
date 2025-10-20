@@ -14,7 +14,7 @@ set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_EXTENSIONS OFF) # strict compiler's rules
+set(CMAKE_CXX_EXTENSIONS OFF) 
 
 set(CMAKE_BUILD_TYPE Release)
 
@@ -22,18 +22,16 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
      ${CMAKE_SOURCE_DIR}/src/backend/*.cpp)
 file(GLOB_RECURSE TUI_SOURCES CONFIGURE_DEPENDS
      ${CMAKE_SOURCE_DIR}/src/tui/*.cpp)
-file(GLOB_RECURSE SIMULATION CONFIGURE_DEPENDS
-     ${CMAKE_SOURCE_DIR}/src/simulation/*.cpp)
+
 
 add_executable(reactor-backend ${SOURCES})
 add_executable(reactor-tui ${TUI_SOURCES})
-add_executable(reactor-simulation ${SIMULATION})
 
 target_include_directories(
   reactor-backend PRIVATE ${CMAKE_SOURCE_DIR}/includes/backend
-                          ${CMAKE_SOURCE_DIR}/external/tomlplusplus/include)
+                          ${CMAKE_SOURCE_DIR}/external/tomlplusplus/include
+						  ${CMAKE_SOURCE_DIR}/includes/simulation)
+						  
 target_include_directories(reactor-tui PRIVATE ${CMAKE_SOURCE_DIR}/includes/tui)
-target_include_directories(reactor-simulation
-                           PRIVATE ${CMAKE_SOURCE_DIR}/includes/simulation)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes/common)
