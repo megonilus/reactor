@@ -47,6 +47,21 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install toml++ library
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          # Ubuntu/Debian
+          sudo apt-get update
+          sudo apt-get install -y libtomlplusplus-dev
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          # Windows - install vcpkg and then toml++
+          git clone https://github.com/Microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+          ./vcpkg/vcpkg install tomlplusplus
+          echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
+        fi
+
+
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
