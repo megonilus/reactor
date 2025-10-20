@@ -84,4 +84,3 @@ private:
                                                    control_mode == ControlMode::MANUAL ?
                                                    status_mode : this->status_mode; }
 };
-
