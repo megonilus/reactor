@@ -1,5 +1,5 @@
-#include <toml++/toml.h>
 #include <iostream>
+#include <toml++/toml.h>
 
 int main()
 {
