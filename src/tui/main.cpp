@@ -1,5 +1,7 @@
-int main(int argc, char* argv[])
-{
+#include <iostream>
+#include <tui.hpp>
 
-	return 0;
+int main()
+{
+	tui::Instance::display();
 }
