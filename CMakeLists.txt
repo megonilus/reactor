@@ -64,3 +64,6 @@ target_link_libraries(
   PRIVATE ftxui::component)
 
 target_include_directories(reactor-tui PRIVATE ${ftxui_SOURCE_DIR}/include)
+target_compile_definitions(
+  reactor-tui PRIVATE PROJECT_NAME="${PROJECT_NAME}"
+                      PROJECT_VERSION="${PROJECT_VERSION}")

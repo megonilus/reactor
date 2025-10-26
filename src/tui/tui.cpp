@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -15,7 +14,8 @@ void Instance::display()
 	Bar	 bar;
 	auto bar_renderer = bar.renderer();
 
-	auto root = Renderer(bar_renderer, [&] { return vbox({bar_renderer->Render()}) | border; });
+	auto root =
+		Renderer(bar_renderer, [bar_renderer] { return vbox({bar_renderer->Render()}) | border; });
 
 	screen.Loop(root);
 }
@@ -27,11 +27,8 @@ Component Bar::renderer()
 	FlexboxConfig config;
 	config.direction = FlexboxConfig::Direction::Column;
 
-	auto tab_container = Container::Tab(
-		{main_window.renderer() | yflex_grow, control_window.renderer(), stat_window.renderer()
-
-		},
-		&tab_selected);
+	auto tab_container =
+		Container::Tab({main_component, control_component, stat_component}, &tab_selected);
 
 	auto tab_filled = Renderer(tab_container, [tab_container]
 							   { return tab_container->Render() | yflex | xflex | frame; });
@@ -45,24 +42,19 @@ Component Bar::renderer()
 
 	return container;
 }
-Component MainWindow::renderer()
+
+Component MainWindow::component()
 {
 
 	// constexpr uint16_t CONTAINER_WIDTH = 500;
 	// constexpr uint8_t  CONTAINER_HEIGHT = 15;
 	// constexpr uint8_t  WINDOW_RATIO		= CONTAINER_WIDTH / 2;
 
-	auto info_content		= text("Info content");
-	auto connection_content = text("Connection info ");
-
-	auto info2_content	 = text("Info 2 content");
-	auto reactor_content = text("Reactor content");
-
 	FlexboxConfig config;
 	config.direction	   = FlexboxConfig::Direction::Row;
 	config.align_content   = FlexboxConfig::AlignContent::Center;
 	config.align_items	   = FlexboxConfig::AlignItems::Stretch;
-	config.justify_content = FlexboxConfig::JustifyContent::Center;
+	config.justify_content = FlexboxConfig::JustifyContent::Stretch;
 
 	FlexboxConfig col_config;
 	col_config.direction	   = FlexboxConfig::Direction::Column;
@@ -72,32 +64,27 @@ Component MainWindow::renderer()
 
 	auto top = flexbox(
 		{
-			window(text("Info"), info_content) | flex,
-			window(text("Connection"), connection_content) | flex,
+			window(text("Info"), info.renderer()) | flex,
+			window(text("Connection"), connect_info.renderer()) | flex,
 		},
 		config);
 
-	auto bot = flexbox({window(text("Info 2"), info2_content) | flex,
-						window(text("Reactor state"), reactor_content) | flex},
+	auto bot = flexbox({window(text("Authors"), authors.renderer()) | flex,
+						window(text("Reactor state"), reactor_state_min.renderer()) | flex},
 					   config);
 
-	auto layout = flexbox({top | flex, bot | flex}, col_config);
-
-	return Renderer([layout] { return layout; });
+	return Renderer([top, bot, col_config]
+					{ return flexbox({top | flex, bot | flex}, col_config); });
 };
 
-Component StatWindow::renderer()
+Component StatWindow::component()
 {
-
 	return Container::Vertical({
-		Renderer([this] { return text(test_output) | border; }),
+		Renderer([] { return text("Statistics") | border; }),
 	});
 }
 
-Component ControlWindow::renderer()
+Component ControlWindow::component()
 {
-
-	return Container::Vertical({
-		Renderer([this] { return text(test_output) | border; }),
-	});
+	return Renderer([] { return text("Controls") | border; });
 }
