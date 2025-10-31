@@ -85,9 +85,12 @@ public:
                                                double reaction_rate_constant = REACTION_RATE_CONSTANT_DEFAULT,
                                                double activation_energy = ACTIVATION_ENERGY_DEFAULT) {
         double temperature = state.get_temperature();
-        double gas_constant = GAS_CONSTANT;
+
+        if (temperature <= 0.0) {
+            return 0.0;
+        }
         
-        double rate_constant = reaction_rate_constant * std::exp(-activation_energy / (gas_constant * temperature));
+        double rate_constant = reaction_rate_constant * std::exp(-activation_energy / (GAS_CONSTANT * temperature));
         
         double heat_of_reaction = HEAT_OF_REACTION_DEFAULT;
         return rate_constant * state.get_mass() * heat_of_reaction;
@@ -119,13 +122,12 @@ public:
         state.set_temperature(new_temperature);
     }
     
-    template<typename T>
-    static void update_temperature_with_controller(State& state, T& controller, double delta_time) {
+    static void update_temperature_with_controller(State& state, double delta_time) {
         state.set_heat_capacity(calculate_mixture_heat_capacity());
         state.set_reaction_heat_rate(calculate_reaction_heat_rate(state));
         state.set_heat_transfer_coefficient(calculate_heat_transfer_coefficient(state));
         
-        auto [heating_power, cooling_power] = controller.calculate_parallel_control_output(state, delta_time);
+        auto [heating_power, cooling_power] = TemperatureController::calculate_parallel_control_output<State>(state);
         
         state.set_heating_rate(heating_power);
         state.set_cooling_rate(cooling_power);

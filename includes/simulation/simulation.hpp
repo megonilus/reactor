@@ -11,6 +11,7 @@ private:
     TemperatureController temp_controller;
     PressureController pressure_controller;
     HumidityController humidity_controller;
+    unsigned long current_time_millis = 0;
     
 public:
     Simulation(Environment env, const double MIN_TEMP, const double MAX_TEMP, const double MIN_PRESSURE, const double MAX_PRESSURE,
@@ -19,27 +20,20 @@ public:
                      PressureController(MIN_PRESSURE, MAX_PRESSURE), HumidityController(MIN_HUMIDITY, MAX_HUMIDITY)),
                temp_controller(MIN_TEMP, MAX_TEMP),
                pressure_controller(MIN_PRESSURE, MAX_PRESSURE),
-               humidity_controller(MIN_HUMIDITY, MAX_HUMIDITY) {
-        
-        const double PROPORTIONAL_PARAM = 2.0;
-        const double INTEGRAL_PARAM = 0.5;
-        const double DERIVATIVE_PARAM = 2.1;
-        
-        PidParameters pid_params{};
-        pid_params.set_proportional(PROPORTIONAL_PARAM)
-                  .set_integral(INTEGRAL_PARAM)
-                  .set_derivative(DERIVATIVE_PARAM);
-        temp_controller.set_pid_parameters(pid_params);
-    }
-    void simulate(long milliseconds) {
-        const double MILLIS_IN_SEC = 1000.0;
+               humidity_controller(MIN_HUMIDITY, MAX_HUMIDITY) {}
+
+    void simulate(unsigned long milliseconds) {
+        const unsigned long MILLIS_IN_SEC = 1000;
         double d_t = (double)milliseconds / MILLIS_IN_SEC;
+        current_time_millis += milliseconds;
 
-        temp_controller.update_startup_time(d_t);
+        if (d_t <= 0.0) {
+            return;
+        }
 
-        Thermodynamics::update_temperature_with_controller(state, temp_controller, d_t);
+        Thermodynamics::update_temperature_with_controller(state, d_t);
         
-        std::cout << "Время: " << milliseconds << " мс,\n"
+        std::cout << "Время: " << current_time_millis / MILLIS_IN_SEC << " с,\n"
                   << "Температура: " << state.get_temperature() << " K,\n"
                   << "Целевая температура: " << state.get_needed_temperature() << " K,\n"
                   << "Масса: " << state.get_mass() << " kg,\n"

@@ -3,17 +3,17 @@
 #include <thread>
 
 namespace {
-    constexpr double MASS = 100.0;
+    constexpr double MASS = 230.0;
     constexpr double VOLUME = 1.0;
-    constexpr double TEMP = 200.0;
-    constexpr double NEEDED_TEMP = 450.0;
+    constexpr double TEMP = 400.0;
+    constexpr double NEEDED_TEMP = 350.0;
     constexpr double PRESSURE = 101325.0;
     constexpr double NEEDED_PRESSURE = 150000.0;
     constexpr double HUMIDITY = 50.0;
     constexpr double NEEDED_HUMIDITY = 30.0;
     constexpr double ENERGY_CONSUMPTION = 1000.0;
-    constexpr double MAX_ENERGY_CONSUMPTION = 20000.0;
-    constexpr double MIN_TEMP = 273.0;
+    constexpr double MAX_ENERGY_CONSUMPTION = 1200000.0;
+    constexpr double MIN_TEMP = 150.0;
     constexpr double MAX_TEMP = 500.0;
     constexpr double MAX_PRESSURE = 1000000.0;
     constexpr double MAX_HUMIDITY = 100.0;
@@ -66,6 +66,8 @@ int main()
 		
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - previous_time);
 		simulation.simulate(duration.count());
+
+		previous_time = current_time;
 	}
 	return 0;
 }
