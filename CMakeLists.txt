@@ -1,3 +1,4 @@
+# -- FTXUI asks for 3.22
 cmake_minimum_required(VERSION 3.22)
 
 project(
@@ -7,61 +8,24 @@ project(
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-# -- Some options
+# -- Configuring
 set(CMAKE_CXX_STANDARD 23)
-# set(CMAKE_CXX_COMPILER clang++)  CMake will decide
-
-# set(CMAKE_C_COMPILER clang)
-
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# -- FXTUI
-include(FetchContent)
+set(DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
 
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-set(FETCHCONTENT_QUIET OFF)
-
-FetchContent_Declare(
-  ftxui
-  GIT_REPOSITORY https://github.com/arthursonzogni/ftxui.git
-  GIT_TAG v5.0.0
-  GIT_PROGRESS TRUE
-  GIT_SHALLOW TRUE
-  EXCLUDE_FROM_ALL)
-FetchContent_MakeAvailable(ftxui)
-
-# -- Sources
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-     ${CMAKE_SOURCE_DIR}/src/backend/*.cpp)
-file(GLOB_RECURSE TUI_SOURCES CONFIGURE_DEPENDS
-     ${CMAKE_SOURCE_DIR}/src/tui/*.cpp)
-
-
-# -- Binaries
-add_executable(reactor-backend ${SOURCES})
-add_executable(reactor-tui ${TUI_SOURCES})
-
-# -- Targetting
-target_include_directories(
-  reactor-backend PRIVATE ${CMAKE_SOURCE_DIR}/includes/backend
-                          ${CMAKE_SOURCE_DIR}/external/tomlplusplus/include
-						  ${CMAKE_SOURCE_DIR}/includes/simulation)
-						  
-target_include_directories(reactor-tui PRIVATE ${CMAKE_SOURCE_DIR}/includes/tui)
-
+# -- Common
 include_directories(${CMAKE_SOURCE_DIR}/includes/common)
 
-# Link FXTUI lib
-target_link_libraries(
-  reactor-tui
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component)
+# -- Subdirectories(libraries)
+add_subdirectory(src/tui)
+add_subdirectory(src/backend)
 
-target_include_directories(reactor-tui PRIVATE ${ftxui_SOURCE_DIR}/include)
-target_compile_definitions(
-  reactor-tui PRIVATE PROJECT_NAME="${PROJECT_NAME}"
-                      PROJECT_VERSION="${PROJECT_VERSION}")
+# -- Binary
+add_executable(reactor src/main.cpp)
+
+# -- Static linking
+target_link_libraries(reactor PRIVATE reactor-backend reactor-tui)

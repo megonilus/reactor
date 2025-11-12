@@ -1,8 +1,9 @@
 #pragma once
 
+#include <cmath>
 #include <common.hpp>
-#include <connect.hpp>
 #include <cstdint>
+#include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/dom/flexbox_config.hpp>
@@ -11,6 +12,7 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -40,11 +42,13 @@
 #define BUILD_TIME __TIME__
 #define BUILD_MODE (#ifdef NDEBUG "Release" #else "Debug" #endif)
 
+using namespace ftxui;
+
 namespace tui
 {
 	using FieldValue = std::variant<std::string, double>;
 	using Key		 = std::string;
-	using Color		 = std::tuple<uint8_t, uint8_t, uint8_t>;
+	using ColorTuple = std::tuple<uint8_t, uint8_t, uint8_t>;
 
 	class Window
 	{
@@ -52,8 +56,8 @@ namespace tui
 		static constexpr uint8_t DEFAULT_G = 179;
 		static constexpr uint8_t DEFAULT_B = 113;
 
-		std::string name  = "window";
-		Color		color = std::make_tuple(DEFAULT_R, DEFAULT_G, DEFAULT_B);
+		std::string name		= "window";
+		ColorTuple	title_color = std::make_tuple(DEFAULT_R, DEFAULT_G, DEFAULT_B);
 
 	public:
 		Window(const Window&)			 = default;
@@ -63,15 +67,15 @@ namespace tui
 		virtual ~Window()				 = default;
 		Window()						 = default;
 
-		virtual ftxui::Component component()
+		virtual Component component()
 		{
-			return ftxui::Renderer(
+			return Renderer(
 				[this]
 				{
-					return ftxui::window(ftxui::text(name) |
-											 ftxui::color(ftxui::Color::RGB(
-												 get<0>(color), get<1>(color), get<2>(color))),
-										 ftxui::text("test" + name));
+					return window(ftxui::text(name) |
+									  color(Color::RGB(get<0>(title_color), get<1>(title_color),
+													   get<2>(title_color))),
+								  text("test" + name));
 				});
 		}
 
@@ -85,30 +89,30 @@ namespace tui
 			name = new_name;
 		}
 
-		void set_color(const Color& new_color)
+		void set_color(const ColorTuple& new_color)
 		{
-			color = new_color;
+			title_color = new_color;
 		}
 	};
 
 	class BaseField
 	{
-		Key			   key;
-		ftxui::Element cached_element = ftxui::text("");
-		bool		   dirty		  = true;
+		Key		key;
+		Element cached_element = ftxui::text("");
+		bool	dirty		   = true;
 
 	protected:
 		virtual void update_value_impl(const FieldValue& value)
 		{
 			if (std::holds_alternative<std::string>(value))
 			{
-				cached_element = ftxui::text(std::get<std::string>(value));
+				cached_element = text(std::get<std::string>(value));
 			}
 		};
 
-		virtual ftxui::Element renderer_impl()
+		virtual Element element_impl()
 		{
-			return ftxui::text("");
+			return text("");
 		};
 
 	public:
@@ -125,11 +129,11 @@ namespace tui
 			update_value_impl(value);
 		}
 
-		ftxui::Element renderer()
+		Element element()
 		{
 			if (dirty)
 			{
-				auto element   = renderer_impl();
+				auto element   = element_impl();
 				dirty		   = false;
 				cached_element = element;
 			}
@@ -171,15 +175,14 @@ namespace tui
 			}
 		}
 
-		ftxui::Element renderer_impl() override
+		Element element_impl() override
 		{
 			constexpr uint8_t DEFAULT_LINK_G = 102;
 			constexpr uint8_t DEFAULT_LINK_B = 204;
 
-			return ftxui::hbox(
-				{ftxui::text(get_key()), ftxui::filler(),
-				 ftxui::hyperlink(link, ftxui::text(value)) |
-					 ftxui::color(ftxui::Color::RGB(0, DEFAULT_LINK_G, DEFAULT_LINK_B))});
+			return hbox({text(get_key()), ftxui::filler(),
+						 hyperlink(link, ftxui::text(value)) |
+							 color(ftxui::Color::RGB(0, DEFAULT_LINK_G, DEFAULT_LINK_B))});
 		}
 
 	public:
@@ -220,9 +223,9 @@ namespace tui
 			}
 		}
 
-		ftxui::Element renderer_impl() override
+		Element element_impl() override
 		{
-			return ftxui::hbox({ftxui::text(get_key()), ftxui::filler(), ftxui::text(value)});
+			return hbox({ftxui::text(get_key()), ftxui::filler(), ftxui::text(value)});
 		}
 
 	public:
@@ -259,25 +262,176 @@ namespace tui
 			}
 		}
 
-		ftxui::Elements all_renderer()
+		Elements elements() const
 		{
-			ftxui::Elements out;
+			Elements out;
 			out.reserve(fields.size());
-			for (auto& elem : fields)
+			for (const auto& elem : fields)
 			{
-				out.push_back(elem->renderer());
+				out.push_back(elem->element());
 			}
 
 			return out;
 		}
 
-		ftxui::Element renderer()
+		Element element() const
 		{
-
-			return vbox(all_renderer());
+			return vbox(elements());
 		}
 	};
 
+	class ContentCell
+	{
+		std::string name;
+		Content		content;
+
+	public:
+		ContentCell(const ContentCell&)			   = default;
+		ContentCell(ContentCell&&)				   = default;
+		ContentCell& operator=(const ContentCell&) = default;
+		ContentCell& operator=(ContentCell&&)	   = default;
+		~ContentCell()							   = default;
+		explicit ContentCell(std::string cell_name) : name(std::move(cell_name)) {};
+
+		[[nodiscard]] Content& get_content()
+		{
+			return content;
+		}
+
+		const Content& get_const_content() const
+		{
+			return content;
+		}
+
+		Element element() const
+		{
+			return window(text(name), content.element());
+		}
+	};
+
+	class GraphField : public BaseField
+	{
+		bool									  fake = true;
+		std::string								  name = "graph";
+		std::function<std::vector<int>(int, int)> provider;
+		ftxui::Color							  style_color = Color::BlueLight;
+		std::function<std::vector<int>(int, int)> fake_provider;
+		std::chrono::steady_clock::time_point	  start_time;
+
+	protected:
+		ftxui::Element fake_element()
+		{
+			using namespace ftxui;
+			auto graph_el = graph(fake_provider) | color(style_color) | flex;
+			return vbox({
+					   text(name) | bold | hcenter,
+					   separator(),
+					   graph_el,
+				   }) |
+				   border;
+		}
+
+		ftxui::Element element_impl() override
+		{
+			using namespace ftxui;
+			if (!provider)
+			{
+				return fake_element();
+			}
+
+			return vbox({
+					   text(name) | bold | hcenter,
+					   separator(),
+					   graph(provider) | color(style_color) | flex,
+				   }) |
+				   border;
+		}
+
+	public:
+		struct GraphData
+		{
+			bool		is_fake = true;
+			std::string name;
+		};
+
+		GraphField(const GraphField&)			 = default;
+		GraphField(GraphField&&)				 = delete;
+		GraphField& operator=(const GraphField&) = default;
+		GraphField& operator=(GraphField&&)		 = delete;
+		~GraphField() override					 = default;
+		GraphField()							 = delete;
+
+		explicit GraphField(GraphData data)
+			: BaseField(data.name),
+			  fake(data.is_fake),
+			  name(std::move(data.name)),
+			  start_time(std::chrono::steady_clock::now())
+		{
+			constexpr double SPATIAL_FREQ_A = 0.10;
+			constexpr double SPATIAL_FREQ_B = 0.15;
+			constexpr double SPATIAL_FREQ_C = 0.03;
+			constexpr double AMPLITUDE_A	= 0.10;
+			constexpr double AMPLITUDE_B	= 0.20;
+			constexpr double AMPLITUDE_C	= 0.10;
+			constexpr double BASE_OFFSET	= 0.5;
+			constexpr double PHASE_OFFSET	= 10.0;
+			constexpr double TEMPORAL_SPEED = 1.0;
+
+			fake_provider = [start = start_time](int width, int height) -> std::vector<int>
+			{
+				if (width <= 0 || height <= 0)
+				{
+					return {};
+				}
+				std::vector<int> output;
+				output.resize(static_cast<size_t>(width));
+				auto   now_tp = std::chrono::steady_clock::now();
+				double time =
+					std::chrono::duration<double>(now_tp - start).count() * TEMPORAL_SPEED;
+				for (int i = 0; i < width; ++i)
+				{
+					double splate_1 = AMPLITUDE_A * std::sin((i * SPATIAL_FREQ_A) + time);
+					double splate_2 =
+						AMPLITUDE_B * std::sin((i * SPATIAL_FREQ_B) + time + PHASE_OFFSET);
+					double splate_3 = AMPLITUDE_C * std::sin((i * SPATIAL_FREQ_C) + time);
+					double value	= splate_1 + splate_2 + splate_3 + BASE_OFFSET;
+					output[static_cast<size_t>(i)] =
+						static_cast<int>(value * static_cast<double>(height));
+				}
+				return output;
+			};
+		}
+
+		template <typename F> void set_provider(F&& some)
+		{
+			provider = std::function<std::vector<int>(int, int)>(std::forward<F>(some));
+			fake	 = false;
+		}
+
+		void clear_provider()
+		{
+			provider = nullptr;
+			fake	 = true;
+		}
+
+		void set_name(std::string n)
+		{
+			name = std::move(n);
+		}
+		void set_color(ftxui::Color new_color)
+		{
+			style_color = new_color;
+		}
+
+		ftxui::Element element()
+		{
+			if (fake)
+			{
+				return fake_element();
+			}
+			return element_impl();
+		}
+	};
 	constexpr std::unique_ptr<TextField> make_text_field(const KeyValuePair& pair)
 	{
 		return std::make_unique<TextField>(pair);
@@ -288,12 +442,17 @@ namespace tui
 		return std::make_unique<LinkField>(data);
 	}
 
+	constexpr std::unique_ptr<GraphField> make_graph_field(const GraphField::GraphData& data)
+	{
+		return std::make_unique<GraphField>(data);
+	}
+
 	class MainWindow : public Window
 	{
-		Content info;
-		Content authors;
-		Content connect_info;
-		Content reactor_state_min;
+		ContentCell info;
+		ContentCell authors;
+		ContentCell connect_info;
+		ContentCell reactor_state_min;
 
 	public:
 		MainWindow(const MainWindow&)			 = default;
@@ -303,34 +462,41 @@ namespace tui
 		~MainWindow() override					 = default;
 
 		MainWindow()
+			: info("Info"),
+			  authors("Authors"),
+			  connect_info("Connection"),
+			  reactor_state_min("Reactor State")
 		{
 			set_name("main");
 
-			info.add(make_text_field({.key = "Program name", .val = PROJECT_NAME}));
-			info.add(make_text_field({.key = "Version", .val = PROJECT_VERSION}));
-			info.add(make_text_field({.key = "Compiler", .val = COMPILER_INFO}));
-			info.add(make_text_field({.key = "Build date", .val = BUILD_DATE}));
-			info.add(make_text_field({.key = "Build time", .val = BUILD_TIME}));
+			info.get_content().add(make_text_field({.key = "Program name", .val = PROJECT_NAME}));
+			info.get_content().add(make_text_field({.key = "Version", .val = PROJECT_VERSION}));
+			info.get_content().add(make_text_field({.key = "Compiler", .val = COMPILER_INFO}));
+			info.get_content().add(make_text_field({.key = "Build date", .val = BUILD_DATE}));
+			info.get_content().add(make_text_field({.key = "Build time", .val = BUILD_TIME}));
 
-			authors.add(make_text_field({.key = "Authors", .val = "SamirShef, megonilus"}));
-			authors.add(make_link_field(
+			authors.get_content().add(
+				make_text_field({.key = "Authors", .val = "SamirShef, megonilus"}));
+			authors.get_content().add(make_link_field(
 				{.key = "SamirShef", .val = "github", .link = "https://github.com/SamirShef"}));
-			authors.add(make_link_field(
+			authors.get_content().add(make_link_field(
 				{.key = "megonilus", .val = "github", .link = "https://github.com/megonilus"}));
 
-			connect_info.add(make_text_field({.key = "Status", .val = "Connected"}));
-			connect_info.add(make_text_field({.key = "Ip", .val = "127.0.0.1"}));
-			connect_info.add(make_text_field({.key = "Port", .val = "12345"}));
-			connect_info.add(make_text_field({.key = "Speed", .val = "10mb/s"}));
-			connect_info.add(make_text_field({.key = "Type", .val = "TCP/IP"}));
+			connect_info.get_content().add(make_text_field({.key = "Status", .val = "Connected"}));
+			connect_info.get_content().add(make_text_field({.key = "Ip", .val = "127.0.0.1"}));
+			connect_info.get_content().add(make_text_field({.key = "Port", .val = "12345"}));
+			connect_info.get_content().add(make_text_field({.key = "Speed", .val = "10mb/s"}));
+			connect_info.get_content().add(make_text_field({.key = "Type", .val = "TCP/IP"}));
 
-			reactor_state_min.add(make_text_field({.key = "State", .val = "NORMAL"}));
-			reactor_state_min.add(make_text_field({.key = "Current temp", .val = "85.9 Celsius"}));
-			reactor_state_min.add(make_text_field({.key = "Humidity", .val = "79%"}));
-			reactor_state_min.add(make_text_field({.key = "Pressure", .val = "12.9 Pa"}));
+			reactor_state_min.get_content().add(make_text_field({.key = "State", .val = "NORMAL"}));
+			reactor_state_min.get_content().add(
+				make_text_field({.key = "Current temp", .val = "85.9 Celsius"}));
+			reactor_state_min.get_content().add(make_text_field({.key = "Humidity", .val = "79%"}));
+			reactor_state_min.get_content().add(
+				make_text_field({.key = "Pressure", .val = "12.9 Pa"}));
 		}
 
-		ftxui::Component component() override;
+		Component component() override;
 	};
 
 	class ControlWindow : public Window
@@ -347,23 +513,27 @@ namespace tui
 			set_name("control");
 		}
 
-		ftxui::Component component() override;
+		Component component() override;
 	};
 
 	class StatWindow : public Window
 	{
+		ContentCell temp;
+
 	public:
 		StatWindow(const StatWindow&)			 = default;
 		StatWindow(StatWindow&&)				 = default;
 		StatWindow& operator=(const StatWindow&) = default;
 		StatWindow& operator=(StatWindow&&)		 = default;
 		~StatWindow() override					 = default;
-		StatWindow()
+		StatWindow() : temp("Temperature")
 		{
 			set_name("stats");
+
+			temp.get_content().add(make_graph_field({.is_fake = true, .name = "Current"}));
 		}
 
-		ftxui::Component component() override;
+		Component component() override;
 	};
 
 	class Bar
@@ -376,12 +546,12 @@ namespace tui
 		ControlWindow control_window;
 		StatWindow	  stat_window;
 
-		ftxui::Component main_component;
-		ftxui::Component control_component;
-		ftxui::Component stat_component;
+		Component main_component;
+		Component control_component;
+		Component stat_component;
 
 	public:
-		ftxui::Component renderer();
+		Component component();
 
 		Bar(const Bar&)			   = default;
 		Bar(Bar&&)				   = default;
@@ -403,14 +573,11 @@ namespace tui
 
 	class Instance
 	{
-		std::string name;
-		ConnectPtr	connection;
+		std::string name = "Main instance";
+		SafeState	state;
 
 	public:
-		Instance(std::string name, ConnectPtr connection)
-			: name(std::move(name)), connection(std::move(connection))
-		{
-		}
+		explicit Instance(SafeState state) : state(std::move(state)) {}
 
 		Instance(const Instance&)			 = delete;
 		Instance(Instance&&)				 = default;
@@ -419,7 +586,6 @@ namespace tui
 		~Instance()							 = default;
 
 		// runs and displays
-		// static for now
-		static void display();
+		void display();
 	};
 } // namespace tui

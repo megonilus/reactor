@@ -1,3 +1,5 @@
+#include "common.hpp"
+
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -7,12 +9,18 @@
 using namespace tui;
 using namespace ftxui;
 
+void render_tui(SafeState state)
+{
+	Instance instance(std::move(state));
+	instance.display();
+}
+
 void Instance::display()
 {
 	auto screen = ScreenInteractive::Fullscreen();
 
 	Bar	 bar;
-	auto bar_renderer = bar.renderer();
+	auto bar_renderer = bar.component();
 
 	auto root =
 		Renderer(bar_renderer, [bar_renderer] { return vbox({bar_renderer->Render()}) | border; });
@@ -20,7 +28,7 @@ void Instance::display()
 	screen.Loop(root);
 }
 
-Component Bar::renderer()
+Component Bar::component()
 {
 	auto tab_toggle = Toggle(&tab_names, &tab_selected);
 
@@ -62,16 +70,9 @@ Component MainWindow::component()
 	col_config.align_items	   = FlexboxConfig::AlignItems::Stretch;
 	col_config.align_content   = FlexboxConfig::AlignContent::Stretch;
 
-	auto top = flexbox(
-		{
-			window(text("Info"), info.renderer()) | flex,
-			window(text("Connection"), connect_info.renderer()) | flex,
-		},
-		config);
+	auto top = flexbox({info.element(), connect_info.element()}, config);
 
-	auto bot = flexbox({window(text("Authors"), authors.renderer()) | flex,
-						window(text("Reactor state"), reactor_state_min.renderer()) | flex},
-					   config);
+	auto bot = flexbox({authors.element(), reactor_state_min.element()}, config);
 
 	return Renderer([top, bot, col_config]
 					{ return flexbox({top | flex, bot | flex}, col_config); });
@@ -79,9 +80,7 @@ Component MainWindow::component()
 
 Component StatWindow::component()
 {
-	return Container::Vertical({
-		Renderer([] { return text("Statistics") | border; }),
-	});
+	return Renderer([this] { return temp.element(); });
 }
 
 Component ControlWindow::component()
