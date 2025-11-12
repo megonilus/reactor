@@ -274,5 +274,3 @@ public:
 		this->status_mode = status_mode;
 	}
 };
-
-using SafeState = std::shared_ptr<State>;
