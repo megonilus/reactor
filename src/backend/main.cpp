@@ -8,7 +8,7 @@ namespace {
     constexpr double TEMP = 400.0;
     constexpr double NEEDED_TEMP = 350.0;
     constexpr double PRESSURE = 101325.0;
-    constexpr double NEEDED_PRESSURE = 150000.0;
+    constexpr double NEEDED_PRESSURE = 1500000.0;
     constexpr double HUMIDITY = 50.0;
     constexpr double NEEDED_HUMIDITY = 30.0;
     constexpr double ENERGY_CONSUMPTION = 1000.0;
@@ -29,6 +29,7 @@ namespace {
     constexpr double REACTION_HEAT_RATE = 0.0;
     constexpr double COOLING_RATE = 0.0;
     constexpr double HEATING_RATE = 15000.0;
+	constexpr double SPECIFIC_GAS_CONSTANT = 287.0;
 }
 
 int main()
@@ -53,7 +54,8 @@ int main()
 		.heat_transfer_coefficient = HEAT_TRANSFER_COEFFICIENT,
 		.reaction_heat_rate = REACTION_HEAT_RATE,
 		.cooling_rate = COOLING_RATE,
-		.heating_rate = HEATING_RATE
+		.heating_rate = HEATING_RATE,
+		.specific_gas_constant = SPECIFIC_GAS_CONSTANT
 	};
 	
 	Simulation simulation(env, MIN_TEMP, MAX_TEMP, 0, MAX_PRESSURE, 0, MAX_HUMIDITY);

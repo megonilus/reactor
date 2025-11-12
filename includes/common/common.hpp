@@ -28,14 +28,15 @@ struct Environment {
     
     double heat_capacity;                   // J/(kg·K) - удельная теплоемкость смеси
     double thermal_conductivity;            // W/(m·K) - теплопроводность
-    double surface_area;                    // m² - площадь поверхности реактора
+    double surface_area;                    // m^2 - площадь поверхности реактора
     double wall_thickness;                  // m - толщина стенки
     double wall_thermal_conductivity;       // W/(m·K) - теплопроводность стенки
     double ambient_temperature;             // K - температура окружающей среды
-    double heat_transfer_coefficient;       // W/(m²·K) - коэффициент теплопередачи
+    double heat_transfer_coefficient;       // W/(m^2·K) - коэффициент теплопередачи
     double reaction_heat_rate;              // W - скорость тепловыделения от реакций
     double cooling_rate;                    // W - скорость охлаждения
     double heating_rate;                    // W - скорость нагрева
+    double specific_gas_constant;
 };
 
 struct State {
@@ -110,6 +111,9 @@ private:
     
     [[nodiscard]] double get_heating_rate() const { return environment.heating_rate; }
     void set_heating_rate(double heating_rate) { environment.heating_rate = heating_rate; }
+
+    [[nodiscard]] double get_specific_gas_constant() const { return environment.specific_gas_constant; }
+    void set_specific_gas_constant(double specific_gas_constant) { environment.specific_gas_constant = specific_gas_constant; }
 
     [[nodiscard]] ControlMode get_control_mode() const { return control_mode; }
     void set_control_mode(ControlMode control_mode) { this->control_mode = control_mode; }

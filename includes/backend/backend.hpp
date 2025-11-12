@@ -108,7 +108,40 @@ public:
     [[nodiscard]] double get_value(T& state) { return std::max(std::min(state.get_pressure(), get_max_value()), get_min_value()); }
     [[nodiscard]] double get_min_value() { return get_sensor().get_min_value(); }
     [[nodiscard]] double get_max_value() { return get_sensor().get_max_value(); }
+
+    // Ограничивает массовый поток по разумной фракции массы в секунду.
+    template<typename T = State>
+    static double calculate_mass_flow_output(T& state, double delta_time) {
+        double gas_const = state.get_specific_gas_constant();
+        double volume = state.get_volume();
+        double temp = state.get_temperature();
+        double current_pressure = state.get_pressure();
+        double needed_pressure = state.get_needed_pressure();
+
+        if (gas_const <= 0.0 || volume <= 0.0 || temp <= 0.0 || delta_time <= 0.0) {
+            return 0.0;
+        }
+
+        double pressure_error = needed_pressure - current_pressure;
+
+        // Коэффициент, определяющий "скорость реакции" системы на ошибку давления
+        constexpr double Kp = 0.002; // можно варьировать 0.001..0.01 для плавности
+
+        // Массовый поток (кг/с), пропорциональный ошибке давления
+        double mass_flow_rate = Kp * pressure_error * volume / (gas_const * temp);
+
+        // Изменение массы за этот шаг
+        double mass_change = mass_flow_rate * delta_time;
+
+        // Ограничение скорости (безопасный предел)
+        constexpr double MAX_FRACTION_PER_SEC = 0.05;
+        double max_mass_change = state.get_mass() * MAX_FRACTION_PER_SEC * delta_time;
+        mass_change = std::clamp(mass_change, -max_mass_change, max_mass_change);
+
+        return mass_change;
+    }
 };
+
 
 class HumidityController : public Controller {
 public:

@@ -32,10 +32,13 @@ public:
         }
 
         Thermodynamics::update_temperature_with_controller(state, d_t);
+        Thermodynamics::update_pressure_with_controller(state, d_t);
         
         std::cout << "Время: " << current_time_millis / MILLIS_IN_SEC << " с,\n"
                   << "Температура: " << state.get_temperature() << " K,\n"
                   << "Целевая температура: " << state.get_needed_temperature() << " K,\n"
+                  << "Давление: " << state.get_pressure() << " Pa,\n"
+                  << "Целевое давление: " << state.get_needed_pressure() << " Pa,\n"
                   << "Масса: " << state.get_mass() << " kg,\n"
                   << "Теплоемкость: " << state.get_heat_capacity() << " J/(kg·K),\n"
                   << "Тепловыделение: " << state.get_reaction_heat_rate() << " W,\n"

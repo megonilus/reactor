@@ -137,4 +137,32 @@ public:
         double new_temperature = state.get_temperature() + temperature_change;
         state.set_temperature(new_temperature);
     }
+
+    static double calculate_pressure(const State& state) {
+        double gas_const = state.get_specific_gas_constant();
+        double volume = state.get_volume();
+        double temp = state.get_temperature();
+        double mass = state.get_mass();
+
+        if (gas_const <= 0.0 || volume <= 0.0 || temp <= 0.0) {
+            return state.get_pressure(); // не меняем
+        }
+
+        return (mass * gas_const * temp) / volume;
+    }
+
+    // Обновляет массу/давление, руководствуясь регулятором давления.
+    static void update_pressure_with_controller(State& state, double delta_time) {
+        // Рассчитать изменение массы, которое предложит контроллер
+        double mass_delta = PressureController::calculate_mass_flow_output<State>(state, delta_time);
+
+        // Применяем изменение массы
+        double new_mass = state.get_mass() + mass_delta;
+        if (new_mass < 1e-6) new_mass = 1e-6; // защита от нулевой или отрицательной массы
+        state.set_mass(new_mass);
+
+        // Пересчитать давление и сохранить
+        double new_pressure = calculate_pressure(state);
+        state.set_pressure(new_pressure);
+    }
 };
