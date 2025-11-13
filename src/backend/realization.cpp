@@ -7,21 +7,21 @@
 
 namespace
 {
-	constexpr double MASS					   = 100.0;
-	constexpr double VOLUME					   = 1.0;
-	constexpr double TEMP					   = 200.0;
-	constexpr double NEEDED_TEMP			   = 450.0;
-	constexpr double PRESSURE				   = 101325.0;
-	constexpr double NEEDED_PRESSURE		   = 150000.0;
-	constexpr double HUMIDITY				   = 50.0;
-	constexpr double NEEDED_HUMIDITY		   = 30.0;
-	constexpr double ENERGY_CONSUMPTION		   = 1000.0;
-	constexpr double MAX_ENERGY_CONSUMPTION    = 20000.0;
-	constexpr double MIN_TEMP				   = 273.0;
-	constexpr double MAX_TEMP				   = 500.0;
-	constexpr double MAX_PRESSURE			   = 1000000.0;
-	constexpr double MAX_HUMIDITY			   = 100.0;
-	constexpr int	 TIME_OF_TICK			   = 100;
+	constexpr double MASS					= 100.0;
+	constexpr double VOLUME					= 1.0;
+	constexpr double TEMP					= 200.0;
+	constexpr double NEEDED_TEMP			= 450.0;
+	constexpr double PRESSURE				= 101325.0;
+	constexpr double NEEDED_PRESSURE		= 150000.0;
+	constexpr double HUMIDITY				= 50.0;
+	constexpr double NEEDED_HUMIDITY		= 30.0;
+	constexpr double ENERGY_CONSUMPTION		= 1000.0;
+	constexpr double MAX_ENERGY_CONSUMPTION = 20000.0;
+	constexpr double MIN_TEMP				= 273.0;
+	constexpr double MAX_TEMP				= 500.0;
+	constexpr double MAX_PRESSURE			= 1000000.0;
+	constexpr double MAX_HUMIDITY			= 100.0;
+	constexpr int	 TIME_OF_TICK			= 100;
 
 	constexpr double HEAT_CAPACITY			   = 4180.0;
 	constexpr double THERMAL_CONDUCTIVITY	   = 0.6;
@@ -36,7 +36,7 @@ namespace
 	constexpr double SPECIFIC_GAS_CONSTANT	   = 287.0;
 } // namespace
 
-const Environment ENV = {.mass					  	= MASS,
+const Environment ENV = {.mass						= MASS,
 						 .volume					= VOLUME,
 						 .temperature				= TEMP,
 						 .needed_temperature		= NEEDED_TEMP,
@@ -50,19 +50,21 @@ const Environment ENV = {.mass					  	= MASS,
 						 .thermal_conductivity		= THERMAL_CONDUCTIVITY,
 						 .surface_area				= SURFACE_AREA,
 						 .wall_thickness			= WALL_THICKNESS,
-						 .wall_thermal_conductivity	= WALL_THERMAL_CONDUCTIVITY,
+						 .wall_thermal_conductivity = WALL_THERMAL_CONDUCTIVITY,
 						 .ambient_temperature		= AMBIENT_TEMPERATURE,
-						 .heat_transfer_coefficient	= HEAT_TRANSFER_COEFFICIENT,
+						 .heat_transfer_coefficient = HEAT_TRANSFER_COEFFICIENT,
 						 .reaction_heat_rate		= REACTION_HEAT_RATE,
 						 .cooling_rate				= COOLING_RATE,
 						 .heating_rate				= HEATING_RATE,
 						 .specific_gas_constant		= SPECIFIC_GAS_CONSTANT};
 
-std::shared_ptr<Simulation> simulation;
+std::shared_ptr<Simulation>
+	simulation; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 void start_simulation()
 {
-	simulation = std::make_shared<Simulation>(ENV, MIN_TEMP, MAX_TEMP, 0, MAX_PRESSURE, 0, MAX_HUMIDITY);
+	simulation =
+		std::make_shared<Simulation>(ENV, MIN_TEMP, MAX_TEMP, 0, MAX_PRESSURE, 0, MAX_HUMIDITY);
 
 	auto previous_time = std::chrono::high_resolution_clock::now();
 	while (simulation->get_simulation_flag())
@@ -77,6 +79,7 @@ void start_simulation()
 	}
 }
 
-State* get_state() {
+State* get_state()
+{
 	return &simulation->state;
 }

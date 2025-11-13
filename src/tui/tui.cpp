@@ -9,9 +9,9 @@
 using namespace tui;
 using namespace ftxui;
 
-void render_tui(SafeState state)
+void render_tui(State* state)
 {
-	Instance instance(std::move(state));
+	Instance instance(state);
 	instance.display();
 }
 
@@ -19,7 +19,7 @@ void Instance::display()
 {
 	auto screen = ScreenInteractive::Fullscreen();
 
-	Bar	 bar;
+	Bar	 bar(state);
 	auto bar_renderer = bar.component();
 
 	auto root =

@@ -1,6 +1,7 @@
 #pragma once
 #include "../backend/backend.hpp"
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -57,7 +58,7 @@ private:
 	PressureController	  pressure_controller;
 	HumidityController	  humidity_controller;
 
-	bool running = true; // controls thread closing
+	std::atomic_bool running = false; // controls thread closing
 
 public:
 	State(Environment environment, ControlMode control_mode, TemperatureController temp_controller,
@@ -71,7 +72,7 @@ public:
 	}
 
 	// Multithread safe access
-	std::mutex mutex; // NOLINT
+	std::mutex mutex; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
 
 	[[nodiscard]] bool is_running() const
 	{

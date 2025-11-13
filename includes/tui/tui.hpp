@@ -538,6 +538,7 @@ namespace tui
 
 	class Bar
 	{
+		State* state;
 
 		std::vector<std::string> tab_names;
 		int						 tab_selected = 0;
@@ -559,8 +560,7 @@ namespace tui
 		Bar& operator=(Bar&&)	   = default;
 		~Bar()					   = default;
 
-		explicit Bar(std::vector<std::string> tab_names) : tab_names(std::move(tab_names)) {}
-		explicit Bar()
+		explicit Bar(State* state) : state(state)
 		{
 			tab_names = std::vector<std::string>(
 				{main_window.get_name(), control_window.get_name(), stat_window.get_name()});
@@ -574,10 +574,10 @@ namespace tui
 	class Instance
 	{
 		std::string name = "Main instance";
-		SafeState	state;
+		State*		state;
 
 	public:
-		explicit Instance(SafeState state) : state(std::move(state)) {}
+		explicit Instance(State* state) : state(state) {}
 
 		Instance(const Instance&)			 = delete;
 		Instance(Instance&&)				 = default;
