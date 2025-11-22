@@ -116,7 +116,7 @@ public:
 	{
 		this->simulation_flag = simulation_flag;
 	}
-	static std::shared_ptr<Simulation> constexpr shared_simulation()
+	static std::shared_ptr<Simulation> shared_simulation()
 	{
 		return std::make_shared<Simulation>(ENV, MIN_TEMP, MAX_TEMP, 0, MAX_PRESSURE, 0,
 											MAX_HUMIDITY);
