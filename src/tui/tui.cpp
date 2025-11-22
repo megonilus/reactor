@@ -8,6 +8,7 @@
 
 using namespace tui;
 using namespace ftxui;
+using namespace std::chrono_literals;
 
 void render_tui(State* state)
 {
@@ -22,10 +23,25 @@ void Instance::display()
 	Bar	 bar(state);
 	auto bar_renderer = bar.component();
 
-	auto root =
-		Renderer(bar_renderer, [bar_renderer] { return vbox({bar_renderer->Render()}) | border; });
+	auto root = Renderer(bar_renderer,
+						 [&screen, bar_renderer]
+						 {
+							 screen.RequestAnimationFrame();
+							 return vbox({bar_renderer->Render()}) | border;
+						 });
+
+	std::thread sleeper(
+		[]
+		{
+			while (true)
+			{
+				std::this_thread::sleep_for(50ms);
+			}
+		});
 
 	screen.Loop(root);
+
+	sleeper.detach();
 }
 
 Component Bar::component()
@@ -80,10 +96,11 @@ Component MainWindow::component()
 
 Component StatWindow::component()
 {
-	return Renderer([this] { return indicators.element(); });
-}
+	return Renderer(
+		[this]
+		{
+			indicators.get_content().rerender_all();
 
-Component ControlWindow::component()
-{
-	return Renderer([] { return text("Controls") | border; });
+			return indicators.element();
+		});
 }

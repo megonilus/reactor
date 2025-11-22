@@ -101,6 +101,8 @@ namespace tui
 		Element cached_element = ftxui::text("");
 		bool	dirty		   = true;
 
+		std::function<FieldValue()> provider;
+
 	protected:
 		virtual void update_value_impl(const FieldValue& value)
 		{
@@ -144,6 +146,23 @@ namespace tui
 		[[nodiscard]] Key get_key() const noexcept
 		{
 			return key;
+		}
+
+		void set_provider(std::function<FieldValue()> provider)
+		{
+			this->provider = std::move(provider);
+		}
+
+		virtual void rerender()
+		{
+			if (provider)
+			{
+				update_value(provider());
+			}
+			else
+			{
+				dirty = true;
+			}
 		}
 	};
 
@@ -252,6 +271,21 @@ namespace tui
 			fields.push_back(std::move(field));
 		}
 
+		template <class Obj, class MemFn> void add_auto(const std::string& key, Obj* obj, MemFn fun)
+		{
+			auto ptr = std::make_unique<TextField>(KeyValuePair{.key = key, .val = ""});
+
+			ptr->set_provider(
+				[obj, fun]
+				{
+					std::scoped_lock lock(obj->mutex);
+					return FieldValue((obj->*fun)());
+				});
+
+			index[key] = ptr.get();
+			fields.push_back(std::move(ptr));
+		}
+
 		void update_by_key(const Key& key, const FieldValue& value)
 		{
 			auto item = index.find(key);
@@ -277,6 +311,24 @@ namespace tui
 		Element element() const
 		{
 			return vbox(elements());
+		}
+
+		void rerender_all()
+		{
+			for (auto& field : fields)
+			{
+				field->rerender();
+			}
+		}
+
+		void
+		add_auto_many(State*																   obj,
+					  std::initializer_list<std::pair<std::string, double (State::*)() const>> list)
+		{
+			for (const auto& item : list)
+			{
+				add_auto(item.first, obj, item.second);
+			}
 		}
 	};
 
@@ -383,11 +435,14 @@ namespace tui
 				{
 					return {};
 				}
+
 				std::vector<int> output;
 				output.resize(static_cast<size_t>(width));
+
 				auto   now_tp = std::chrono::steady_clock::now();
 				double time =
 					std::chrono::duration<double>(now_tp - start).count() * TEMPORAL_SPEED;
+
 				for (int i = 0; i < width; ++i)
 				{
 					double splate_1 = AMPLITUDE_A * std::sin((i * SPATIAL_FREQ_A) + time);
@@ -398,6 +453,7 @@ namespace tui
 					output[static_cast<size_t>(i)] =
 						static_cast<int>(value * static_cast<double>(height));
 				}
+
 				return output;
 			};
 		}
@@ -432,19 +488,27 @@ namespace tui
 			return element_impl();
 		}
 	};
-	constexpr std::unique_ptr<TextField> make_text_field(const KeyValuePair& pair)
+	inline std::unique_ptr<TextField> make_text_field(const KeyValuePair& pair)
 	{
 		return std::make_unique<TextField>(pair);
 	}
 
-	constexpr std::unique_ptr<LinkField> make_link_field(const LinkField::LinkData& data)
+	inline std::unique_ptr<LinkField> make_link_field(const LinkField::LinkData& data)
 	{
 		return std::make_unique<LinkField>(data);
 	}
 
-	constexpr std::unique_ptr<GraphField> make_graph_field(const GraphField::GraphData& data)
+	inline std::unique_ptr<GraphField> make_graph_field(const GraphField::GraphData& data)
 	{
 		return std::make_unique<GraphField>(data);
+	}
+
+	inline std::unique_ptr<TextField> make_text_field_provider(const Key&				   key,
+															   std::function<FieldValue()> provider)
+	{
+		auto ptr = std::make_unique<TextField>(KeyValuePair{.key = key, .val = ""});
+		ptr->set_provider(std::move(provider));
+		return ptr;
 	}
 
 	class MainWindow : public Window
@@ -499,23 +563,6 @@ namespace tui
 		Component component() override;
 	};
 
-	class ControlWindow : public Window
-	{
-	public:
-		ControlWindow(const ControlWindow&)			   = default;
-		ControlWindow(ControlWindow&&)				   = default;
-		ControlWindow& operator=(const ControlWindow&) = default;
-		ControlWindow& operator=(ControlWindow&&)	   = default;
-		~ControlWindow() override					   = default;
-
-		ControlWindow()
-		{
-			set_name("control");
-		}
-
-		Component component() override;
-	};
-
 	class StatWindow : public Window
 	{
 		State*		state;
@@ -527,14 +574,31 @@ namespace tui
 		StatWindow& operator=(const StatWindow&) = default;
 		StatWindow& operator=(StatWindow&&)		 = default;
 		~StatWindow() override					 = default;
+
 		explicit StatWindow(State* state) : state(state), indicators("Indicators")
 		{
 			set_name("stats");
 
-			indicators.get_content().add(
-				make_text_field({.key = "Temp", .val = std::to_string(state->get_temperature())}));
-			indicators.get_content().add(
-				make_text_field({.key = "Pressure", .val = std::to_string(state->get_pressure())}));
+			indicators.get_content().add_auto_many(
+				state, {{"Temp", &State::get_temperature},
+						{"Needed temp", &State::get_needed_temperature},
+						{"Pressure", &State::get_pressure},
+						{"Needed pressure", &State::get_needed_pressure},
+						{"Humidity", &State::get_humidity},
+						{"Needed humidity", &State::get_needed_humidity},
+						{"Mass", &State::get_mass},
+						{"Volume", &State::get_volume},
+						{"Specific gas const", &State::get_specific_gas_constant},
+						{"Heat capacity", &State::get_heat_capacity},
+						{"Thermal conductivity", &State::get_thermal_conductivity},
+						{"Surface area", &State::get_surface_area},
+						{"Wall thickness", &State::get_wall_thickness},
+						{"Wall thermal cond.", &State::get_wall_thermal_conductivity},
+						{"Ambient temp", &State::get_ambient_temperature},
+						{"Heat transfer coeff.", &State::get_heat_transfer_coefficient},
+						{"Reaction heat rate", &State::get_reaction_heat_rate},
+						{"Cooling rate", &State::get_cooling_rate},
+						{"Heating rate", &State::get_heating_rate}});
 		}
 
 		Component component() override;
@@ -547,9 +611,8 @@ namespace tui
 		std::vector<std::string> tab_names;
 		int						 tab_selected = 0;
 
-		MainWindow	  main_window;
-		ControlWindow control_window;
-		StatWindow	  stat_window;
+		MainWindow main_window;
+		StatWindow stat_window;
 
 		Component main_component;
 		Component control_component;
@@ -566,12 +629,10 @@ namespace tui
 
 		explicit Bar(State* state) : state(state), stat_window(state)
 		{
-			tab_names = std::vector<std::string>(
-				{main_window.get_name(), control_window.get_name(), stat_window.get_name()});
+			tab_names = std::vector<std::string>({main_window.get_name(), stat_window.get_name()});
 
-			main_component	  = main_window.component();
-			control_component = control_window.component();
-			stat_component	  = stat_window.component();
+			main_component = main_window.component();
+			stat_component = stat_window.component();
 		};
 	};
 
