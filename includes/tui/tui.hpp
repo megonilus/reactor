@@ -518,7 +518,8 @@ namespace tui
 
 	class StatWindow : public Window
 	{
-		ContentCell temp;
+		State*		state;
+		ContentCell indicators;
 
 	public:
 		StatWindow(const StatWindow&)			 = default;
@@ -526,11 +527,14 @@ namespace tui
 		StatWindow& operator=(const StatWindow&) = default;
 		StatWindow& operator=(StatWindow&&)		 = default;
 		~StatWindow() override					 = default;
-		StatWindow() : temp("Temperature")
+		explicit StatWindow(State* state) : state(state), indicators("Indicators")
 		{
 			set_name("stats");
 
-			temp.get_content().add(make_graph_field({.is_fake = true, .name = "Current"}));
+			indicators.get_content().add(
+				make_text_field({.key = "Temp", .val = std::to_string(state->get_temperature())}));
+			indicators.get_content().add(
+				make_text_field({.key = "Pressure", .val = std::to_string(state->get_pressure())}));
 		}
 
 		Component component() override;
@@ -560,7 +564,7 @@ namespace tui
 		Bar& operator=(Bar&&)	   = default;
 		~Bar()					   = default;
 
-		explicit Bar(State* state) : state(state)
+		explicit Bar(State* state) : state(state), stat_window(state)
 		{
 			tab_names = std::vector<std::string>(
 				{main_window.get_name(), control_window.get_name(), stat_window.get_name()});

@@ -80,7 +80,7 @@ Component MainWindow::component()
 
 Component StatWindow::component()
 {
-	return Renderer([this] { return temp.element(); });
+	return Renderer([this] { return indicators.element(); });
 }
 
 Component ControlWindow::component()
