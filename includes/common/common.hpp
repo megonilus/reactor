@@ -30,8 +30,6 @@ struct Environment
 	double needed_pressure;		   // Pa
 	double humidity;			   // %
 	double needed_humidity;		   // %
-	double energy_consumption;	   // W
-	double max_energy_consumption; // W
 
 	double heat_capacity;			  // J/(kg·K) - удельная теплоемкость смеси
 	double thermal_conductivity;	  // W/(m·K) - теплопроводность
@@ -160,20 +158,6 @@ public:
 	[[nodiscard]] double get_needed_humidity() const
 	{
 		return environment.needed_humidity;
-	}
-
-	[[nodiscard]] double get_energy_consumption() const
-	{
-		return environment.energy_consumption;
-	}
-	void set_energy_consumption(double energy_consumption)
-	{
-		environment.energy_consumption = energy_consumption;
-	}
-
-	[[nodiscard]] double get_max_energy_consumption() const
-	{
-		return environment.max_energy_consumption;
 	}
 
 	[[nodiscard]] double get_heat_capacity() const
