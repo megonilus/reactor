@@ -3,7 +3,6 @@
 
 #include <atomic>
 #include <cstdint>
-#include <memory>
 #include <mutex>
 #include <utility>
 
@@ -58,7 +57,8 @@ private:
 	PressureController	  pressure_controller;
 	HumidityController	  humidity_controller;
 
-	std::atomic_bool running = false; // controls thread closing
+	std::atomic_bool running{false};
+	std::atomic_bool terminated{false};
 
 public:
 	State(Environment environment, ControlMode control_mode, TemperatureController temp_controller,
@@ -76,12 +76,12 @@ public:
 
 	[[nodiscard]] bool is_running() const
 	{
-		return running;
+		return running.load();
 	}
 
 	void set_running(bool new_value)
 	{
-		running = new_value;
+		running.store(new_value);
 	}
 
 	[[nodiscard]] double get_mass() const
@@ -273,5 +273,15 @@ public:
 	void set_status_mode(StatusMode status_mode)
 	{
 		this->status_mode = status_mode;
+	}
+
+	[[nodiscard]] bool is_terminated() const
+	{
+		return terminated.load();
+	}
+
+	void set_terminated(bool value)
+	{
+		terminated.store(value);
 	}
 };

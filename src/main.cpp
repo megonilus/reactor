@@ -16,12 +16,8 @@ int main()
 	thread tui_thread(render_tui, current_state);
 
 	tui_thread.join();
-	{
-		std::scoped_lock lock(current_state->mutex);
-		current_state->set_running(false);
-	}
 
-	simulation->stop();
+	current_state->set_terminated(true);
 	simulation_thread.join();
 
 	return 0;
