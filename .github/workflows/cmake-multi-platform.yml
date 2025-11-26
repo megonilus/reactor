@@ -48,13 +48,14 @@ jobs:
         elif [ "$RUNNER_OS" == "Windows" ]; then
           # Установка vcpkg
           git clone https://github.com/Microsoft/vcpkg.git
-          # Важно: на Windows запускаем .bat, а не .sh
           ./vcpkg/bootstrap-vcpkg.bat
           ./vcpkg/vcpkg install tomlplusplus
+
+          VCPKG_ROOT_WIN=$(cygpath -w $(pwd)/vcpkg)
+          VCPKG_TOOLCHAIN_FILE="$VCPKG_ROOT_WIN\\scripts\\buildsystems\\vcpkg.cmake"
           
-          # Формируем путь к тулчейну для следующего шага
-          # Используем cygpath или прямой слеш для совместимости путей в CMake
-          echo "TOOLCHAIN_ARG=-DCMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+          # Передаем нативный путь в переменную окружения
+          echo "TOOLCHAIN_ARG=-DCMAKE_TOOLCHAIN_FILE=$VCPKG_TOOLCHAIN_FILE" >> $GITHUB_ENV
         fi
 
     - name: Set reusable strings
