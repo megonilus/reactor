@@ -6,7 +6,11 @@ project(
   VERSION 0.0.1
   LANGUAGES CXX)
 
-add_compile_options(-Wall -Wextra -Wpedantic)
+if(MSVC)
+    add_compile_options(/W4)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 # -- Configuring
 set(CMAKE_CXX_STANDARD 23)
