@@ -1,5 +1,6 @@
 #pragma once
 #include "../common/common.hpp"
+#include <algorithm>
 #include <cmath>
 
 class Thermodynamics {
@@ -17,6 +18,8 @@ private:
     static constexpr double DITTUS_BOELTER_COEFFICIENT = 0.023;
     static constexpr double REYNOLDS_EXPONENT = 0.8;
     static constexpr double PRANDTL_EXPONENT = 0.4;
+    static constexpr double MOLAR_MASS_WATER = 0.018015;
+    static constexpr double LATENT_HEAT_WATER = 2260000.0;
     
 public:
     static double calculate_conduction_heat_loss(const State& state) {
@@ -110,6 +113,21 @@ public:
         
         return nusselt_number * thermal_conductivity / CHARACTERISTIC_LENGTH;
     }
+
+    static double calculate_saturation_pressure(double temperature_kelvin) {
+        // Константы для воды (диапазон 1C - 374C)
+        // log10(P_mmHg) = A - B / (C + T_celsius)
+        const double A = 8.07131;
+        const double B = 1730.63;
+        const double C = 233.426;
+
+        double temp_c = temperature_kelvin - 273.15;
+        temp_c = std::max(temp_c, 1.0); // защита границ
+
+        double p_mmHg = std::pow(10, A - (B / (C + temp_c)));
+        double p_pascal = p_mmHg * 133.322; // конвертация в Паскали
+        return p_pascal;
+    }
     
     static void update_temperature(State& state, double delta_time) {
         state.set_heat_capacity(calculate_mixture_heat_capacity());
@@ -158,11 +176,66 @@ public:
 
         // Применяем изменение массы
         double new_mass = state.get_mass() + mass_delta;
-        if (new_mass < 1e-6) new_mass = 1e-6; // защита от нулевой или отрицательной массы
+        new_mass = std::max(new_mass, 1e-6); // защита от нулевой или отрицательной массы
         state.set_mass(new_mass);
 
         // Пересчитать давление и сохранить
         double new_pressure = calculate_pressure(state);
         state.set_pressure(new_pressure);
+    }
+
+    static void update_humidity_with_controller(State& state, double delta_time) {
+        double temp = state.get_temperature();
+        double vol = state.get_volume();
+        
+        // Рассчитываем давление насыщенного пара (P_sat) при текущей T
+        double p_sat = calculate_saturation_pressure(temp);
+        
+        // Защита от физически некорректных значений при очень низких температурах
+        p_sat = std::max(p_sat, 0.1); 
+
+        // Рассчитываем МАКСИМАЛЬНУЮ массу воды (газообразной), которую может вместить реактор
+        // m_max = (P_sat * V * M) / (R * T)
+        double max_water_vapor_mass = (p_sat * vol * MOLAR_MASS_WATER) / (GAS_CONSTANT * temp);
+
+        // Получаем текущую массу воды на основе текущей влажности
+        // Humidity = (m_current / m_max) * 100 => m_current = (Humidity / 100) * m_max
+        double current_water_mass = (state.get_humidity() / 100.0) * max_water_vapor_mass;
+
+        // Спрашиваем контроллер, сколько воды добавить/убрать
+        // Но теперь передаем ему max_mass, чтобы он понимал масштаб
+        double water_flow_rate = HumidityController::calculate_water_injection_rate<State>(state, delta_time, max_water_vapor_mass);
+        
+        double mass_change = water_flow_rate * delta_time;
+
+        // Применяем изменение массы
+        double new_water_mass = current_water_mass + mass_change;
+
+        // Ограничиваем физикой: масса не может быть меньше 0
+        new_water_mass = std::max(new_water_mass, 0.0);
+        
+        // Если масса превышает максимум (100% влажности), излишек конденсируется (влажность остается 100%)
+        // В более сложной модели излишек стал бы жидкостью, но здесь просто ограничиваем пар.
+        new_water_mass = std::min(new_water_mass, max_water_vapor_mass);
+
+        // Обновляем общую массу реактора
+        // delta_real = то, что реально изменилось
+        double real_mass_delta = new_water_mass - current_water_mass;
+        state.set_mass(state.get_mass() + real_mass_delta);
+
+        // Пересчитываем влажность
+        double new_humidity = (new_water_mass / max_water_vapor_mass) * 100.0;
+        state.set_humidity(new_humidity);
+
+        // Термодинамический эффект (испарение охлаждает, конденсация нагревает)
+        // Q = dm * L. Если delta > 0 (испарение) -> теряем тепло.
+        // Эффект должен быть ощутимым, но не ломать симуляцию.
+        double energy_change = -real_mass_delta * LATENT_HEAT_WATER;
+        
+        // dT = Q / (m * c)
+        double temp_correction = energy_change / (state.get_mass() * state.get_heat_capacity());
+        
+        // Сглаживание температурного скачка (чтобы не было взрыва значений)
+        state.set_temperature(state.get_temperature() + temp_correction);
     }
 };

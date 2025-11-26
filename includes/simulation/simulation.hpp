@@ -93,7 +93,13 @@ public:
 			return;
 		}
 
+		// 1. Контроллер влажности меняет массу (добавляет воду) и температуру (испарение).
+		Thermodynamics::update_humidity_with_controller(state, d_t);
+        
+        // 2. Контроллер температуры компенсирует потери тепла
 		Thermodynamics::update_temperature_with_controller(state, d_t);
+        
+        // 3. Контроллер давления реагирует на изменение общей массы и температуры (PV=nRT).
 		Thermodynamics::update_pressure_with_controller(state, d_t);
 
 		// std::cout << "Время: " << current_time_millis / MILLIS_IN_SEC << " с,\n"
