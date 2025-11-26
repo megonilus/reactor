@@ -152,4 +152,28 @@ public:
     [[nodiscard]] double get_value(T& state) { return std::max(std::min(state.get_humidity(), get_max_value()), get_min_value()); }
     [[nodiscard]] double get_min_value() { return get_sensor().get_min_value(); }
     [[nodiscard]] double get_max_value() { return get_sensor().get_max_value(); }
+
+    template<typename T = State>
+    static double calculate_water_injection_rate(T& state, double delta_time, double max_possible_mass) {
+        double current = state.get_humidity();
+        double needed = state.get_needed_humidity();
+        double error = needed - current; // Если > 0, нужно увлажнять
+
+        // Коэффициент пропорциональности. 
+        // 0.1 означает: пытаемся исправить 10% ошибки за секунду.
+        constexpr double Kp = 0.5; 
+
+        // Желаемая скорость изменения влажности (% в секунду)
+        double desired_humidity_change_speed = error * Kp;
+
+        // Превращаем проценты в массу воды (kg/s)
+        // Если мы хотим изменить влажность на 5%, нам нужно добавить 0.05 * max_mass воды.
+        double needed_flow_rate = (desired_humidity_change_speed / 100.0) * max_possible_mass;
+
+        // Физическое ограничение форсунки (Valve Limit).
+        // Допустим, насос не может качать быстрее 0.05 кг/с (50 грамм в секунду)
+        constexpr double MAX_PHYSICAL_FLOW = 0.05; 
+        
+        return std::clamp(needed_flow_rate, -MAX_PHYSICAL_FLOW, MAX_PHYSICAL_FLOW);
+    }
 };
