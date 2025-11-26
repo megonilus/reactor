@@ -21,7 +21,7 @@ int main()
 		current_state->set_running(false);
 	}
 
-	simulation->stop();
+	current_state->set_running(true);
 	simulation_thread.join();
 
 	return 0;

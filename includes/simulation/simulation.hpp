@@ -59,7 +59,6 @@ const Environment ENV = {.mass						= MASS,
 class Simulation
 {
 private:
-	std::atomic_bool	  simulation_flag{true};
 	TemperatureController temp_controller;
 	PressureController	  pressure_controller;
 	HumidityController	  humidity_controller;
@@ -84,6 +83,11 @@ public:
 
 	void simulate(unsigned long milliseconds)
 	{
+		if (!state.is_running())
+		{
+			return;
+		}
+
 		const unsigned long MILLIS_IN_SEC = 1000;
 		double				d_t			  = (double) milliseconds / MILLIS_IN_SEC;
 		current_time_millis += milliseconds;
@@ -106,30 +110,12 @@ public:
 		// 		  << "Тепловыделение: " << state.get_reaction_heat_rate() << " W,\n"
 		// 		  << "Нагрев: " << state.get_heating_rate() << " W,\n"
 		// 		  << "Охлаждение: " << state.get_cooling_rate() << " W\n\n";
-
-		if (!simulation_flag.load())
-		{
-			return;
-		}
 	}
 
-	[[nodiscard]] bool get_simulation_flag() const
-	{
-		return simulation_flag.load();
-	}
-	void set_simulation_flag(bool simulation_flag)
-	{
-		this->simulation_flag = simulation_flag;
-	}
 	static std::shared_ptr<Simulation> shared_simulation()
 	{
 		return std::make_shared<Simulation>(ENV, MIN_TEMP, MAX_TEMP, 0, MAX_PRESSURE, 0,
 											MAX_HUMIDITY);
-	}
-
-	void stop()
-	{
-		simulation_flag.store(false);
 	}
 };
 
