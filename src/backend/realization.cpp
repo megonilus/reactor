@@ -27,14 +27,17 @@ std::shared_ptr<Simulation>
 
 void Simulation::operator()()
 {
-	auto previous_time = std::chrono::high_resolution_clock::now();
-	while (state.is_running())
+	for (;;)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(TIME_OF_TICK));
-		auto current_time = std::chrono::high_resolution_clock::now();
-		auto duration =
-			std::chrono::duration_cast<std::chrono::milliseconds>(current_time - previous_time);
-		simulate(duration.count());
-		previous_time = current_time;
+		auto previous_time = std::chrono::high_resolution_clock::now();
+		while (state.is_running())
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(TIME_OF_TICK));
+			auto current_time = std::chrono::high_resolution_clock::now();
+			auto duration =
+				std::chrono::duration_cast<std::chrono::milliseconds>(current_time - previous_time);
+			simulate(duration.count());
+			previous_time = current_time;
+		}
 	}
 }

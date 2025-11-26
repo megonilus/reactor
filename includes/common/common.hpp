@@ -76,12 +76,12 @@ public:
 
 	[[nodiscard]] bool is_running() const
 	{
-		return running;
+		return running.load();
 	}
 
 	void set_running(bool new_value)
 	{
-		running = new_value;
+		running.store(new_value);
 	}
 
 	[[nodiscard]] double get_mass() const
