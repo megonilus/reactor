@@ -564,27 +564,26 @@ namespace tui
 			set_name("stats");
 
 			indicators.get_content().add_auto_many(
-				state, {{"Temp", &State::get_temperature},
-						{"Needed temp", &State::get_needed_temperature},
-						{"Pressure", &State::get_pressure},
-						{"Needed pressure", &State::get_needed_pressure},
-						{"Humidity", &State::get_humidity},
-						{"Needed humidity", &State::get_needed_humidity},
-						{"Mass", &State::get_mass},
-						{"Volume", &State::get_volume},
-						{"Specific gas const", &State::get_specific_gas_constant},
-						{"Heat capacity", &State::get_heat_capacity},
-						{"Thermal conductivity", &State::get_thermal_conductivity},
-						{"Surface area", &State::get_surface_area},
-						{"Wall thickness", &State::get_wall_thickness},
-						{"Wall thermal cond.", &State::get_wall_thermal_conductivity},
-						{"Ambient temp", &State::get_ambient_temperature},
-						{"Heat transfer coeff.", &State::get_heat_transfer_coefficient},
-						{"Reaction heat rate", &State::get_reaction_heat_rate},
-						{"Cooling rate", &State::get_cooling_rate},
-						{"Heating rate", &State::get_heating_rate}});
+				state, {{"Temp (K)", &State::get_temperature},
+						{"Needed temp (K)", &State::get_needed_temperature},
+						{"Pressure (Pa)", &State::get_pressure},
+						{"Needed pressure (Pa)", &State::get_needed_pressure},
+						{"Humidity (%)", &State::get_humidity},
+						{"Needed humidity (%)", &State::get_needed_humidity},
+						{"Mass (kg)", &State::get_mass},
+						{"Volume (m^3)", &State::get_volume},
+						{"Specific gas const (J/kg*K)", &State::get_specific_gas_constant},
+						{"Heat capacity (J/kg*K)", &State::get_heat_capacity},
+						{"Thermal conductivity (W/m*K)", &State::get_thermal_conductivity},
+						{"Surface area (m^2)", &State::get_surface_area},
+						{"Wall thickness (m)", &State::get_wall_thickness},
+						{"Wall thermal cond. (W/m*K)", &State::get_wall_thermal_conductivity},
+						{"Ambient temp (K)", &State::get_ambient_temperature},
+						{"Heat transfer coeff. (W/m^2*K)", &State::get_heat_transfer_coefficient},
+						{"Reaction heat rate (W)", &State::get_reaction_heat_rate},
+						{"Cooling rate (W)", &State::get_cooling_rate},
+						{"Heating rate (W)", &State::get_heating_rate}});
 		}
-
 		Component component() override;
 	};
 

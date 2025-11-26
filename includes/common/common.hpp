@@ -57,7 +57,8 @@ private:
 	PressureController	  pressure_controller;
 	HumidityController	  humidity_controller;
 
-	std::atomic_bool running = false;
+	std::atomic_bool running{false};
+	std::atomic_bool terminated{false};
 
 public:
 	State(Environment environment, ControlMode control_mode, TemperatureController temp_controller,
@@ -82,10 +83,6 @@ public:
 	{
 		running.store(new_value);
 	}
-
-	std::atomic_bool
-		terminated = // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
-		false;
 
 	[[nodiscard]] double get_mass() const
 	{
