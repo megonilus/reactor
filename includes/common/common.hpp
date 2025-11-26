@@ -3,7 +3,6 @@
 
 #include <atomic>
 #include <cstdint>
-#include <memory>
 #include <mutex>
 #include <utility>
 
@@ -58,7 +57,7 @@ private:
 	PressureController	  pressure_controller;
 	HumidityController	  humidity_controller;
 
-	std::atomic_bool running = false; // controls thread closing
+	std::atomic_bool running = false;
 
 public:
 	State(Environment environment, ControlMode control_mode, TemperatureController temp_controller,
@@ -83,6 +82,10 @@ public:
 	{
 		running.store(new_value);
 	}
+
+	std::atomic_bool
+		terminated = // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
+		false;
 
 	[[nodiscard]] double get_mass() const
 	{
@@ -273,5 +276,15 @@ public:
 	void set_status_mode(StatusMode status_mode)
 	{
 		this->status_mode = status_mode;
+	}
+
+	[[nodiscard]] bool is_terminated() const
+	{
+		return terminated.load();
+	}
+
+	void set_terminated(bool value)
+	{
+		terminated.store(value);
 	}
 };

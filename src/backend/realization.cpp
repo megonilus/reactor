@@ -27,7 +27,7 @@ std::shared_ptr<Simulation>
 
 void Simulation::operator()()
 {
-	for (;;)
+	for (; state.is_terminated();)
 	{
 		auto previous_time = std::chrono::high_resolution_clock::now();
 		while (state.is_running())

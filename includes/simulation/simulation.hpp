@@ -3,6 +3,8 @@
 #include "../common/common.hpp"
 #include "thermodynamics.hpp"
 
+#include <memory>
+
 namespace
 {
 	constexpr double MASS					= 100.0;
