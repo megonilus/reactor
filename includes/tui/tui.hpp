@@ -615,7 +615,6 @@ namespace tui
 		StatWindow stat_window;
 
 		Component main_component;
-		Component control_component;
 		Component stat_component;
 
 	public:

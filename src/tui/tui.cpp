@@ -51,8 +51,7 @@ Component Bar::component()
 	FlexboxConfig config;
 	config.direction = FlexboxConfig::Direction::Column;
 
-	auto tab_container =
-		Container::Tab({main_component, control_component, stat_component}, &tab_selected);
+	auto tab_container = Container::Tab({main_component, stat_component}, &tab_selected);
 
 	auto tab_filled = Renderer(tab_container, [tab_container]
 							   { return tab_container->Render() | yflex | xflex | frame; });
