@@ -45,8 +45,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libtomlplusplus-dev
           echo "TOOLCHAIN_ARG=" >> $GITHUB_ENV
+          echo "MSVC_FLAGS=" >> $GITHUB_ENV  # Пустая строка для Linux
         elif [ "$RUNNER_OS" == "Windows" ]; then
-          # Установка vcpkg
           git clone https://github.com/Microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.bat
           ./vcpkg/vcpkg install tomlplusplus
@@ -55,6 +55,8 @@ jobs:
           VCPKG_TOOLCHAIN_FILE="$VCPKG_ROOT_WIN\\scripts\\buildsystems\\vcpkg.cmake"
           
           echo "TOOLCHAIN_ARG=-DCMAKE_TOOLCHAIN_FILE=$VCPKG_TOOLCHAIN_FILE" >> $GITHUB_ENV
+          
+          echo "MSVC_FLAGS=-DCMAKE_CXX_FLAGS_RELEASE=/W4 -DCMAKE_C_FLAGS_RELEASE=/W4" >> $GITHUB_ENV
         fi
 
     - name: Set reusable strings
@@ -70,6 +72,7 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         ${{ env.TOOLCHAIN_ARG }}
+        ${{ env.MSVC_FLAGS }}  # <--- Теперь здесь передаются новые флаги для MSVC
         -S ${{ github.workspace }}
 
     - name: Build
