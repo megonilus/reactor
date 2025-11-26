@@ -49,6 +49,9 @@ jobs:
           git clone https://github.com/Microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.bat
           ./vcpkg/vcpkg install tomlplusplus
+
+          VCPKG_ROOT_WIN=$(cygpath -w $(pwd)/vcpkg)
+          VCPKG_TOOLCHAIN_FILE="$VCPKG_ROOT_WIN\\scripts\\buildsystems\\vcpkg.cmake"
           
           echo "TOOLCHAIN_ARG=-DCMAKE_TOOLCHAIN_FILE=$(pwd)/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
         fi
