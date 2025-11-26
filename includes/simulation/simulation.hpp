@@ -106,6 +106,11 @@ public:
 		// 		  << "Тепловыделение: " << state.get_reaction_heat_rate() << " W,\n"
 		// 		  << "Нагрев: " << state.get_heating_rate() << " W,\n"
 		// 		  << "Охлаждение: " << state.get_cooling_rate() << " W\n\n";
+
+		if (!simulation_flag.load())
+		{
+			return;
+		}
 	}
 
 	[[nodiscard]] bool get_simulation_flag() const

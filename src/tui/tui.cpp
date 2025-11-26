@@ -68,29 +68,46 @@ Component Bar::component()
 
 Component MainWindow::component()
 {
+	auto btn_toggle_sim = Button(
+		"Toggle Simulation",
+		[this]
+		{
+			bool current = state->is_running();
+			state->set_running(!current);
+		},
+		ButtonOption::Ascii());
 
-	// constexpr uint16_t CONTAINER_WIDTH = 500;
-	// constexpr uint8_t  CONTAINER_HEIGHT = 15;
-	// constexpr uint8_t  WINDOW_RATIO		= CONTAINER_WIDTH / 2;
+	auto controls_container = Container::Vertical({
+		btn_toggle_sim,
+	});
 
-	FlexboxConfig config;
-	config.direction	   = FlexboxConfig::Direction::Row;
-	config.align_content   = FlexboxConfig::AlignContent::Center;
-	config.align_items	   = FlexboxConfig::AlignItems::Stretch;
-	config.justify_content = FlexboxConfig::JustifyContent::Stretch;
+	auto info_component_wrapper = Renderer([this] { return info.element(); });
 
-	FlexboxConfig col_config;
-	col_config.direction	   = FlexboxConfig::Direction::Column;
-	col_config.justify_content = FlexboxConfig::JustifyContent::Stretch;
-	col_config.align_items	   = FlexboxConfig::AlignItems::Stretch;
-	col_config.align_content   = FlexboxConfig::AlignContent::Stretch;
+	auto main_layout = Container::Horizontal({
+		info_component_wrapper,
+		controls_container,
+	});
+	return Renderer(main_layout,
+					[this, btn_toggle_sim]
+					{
+						bool is_running = state->is_running();
 
-	auto top = flexbox({info.element(), connect_info.element()}, config);
+						auto status_text =
+							is_running ? text(" SIMULATION: RUNNING ") | bold | color(Color::Green)
+									   : text(" SIMULATION: STOPPED ") | bold | color(Color::Red);
 
-	auto bot = flexbox({authors.element(), reactor_state_min.element()}, config);
+						auto right_panel = vbox({
+											   text("REACTOR CONTROL") | hcenter | bold,
+											   separator(),
+											   status_text | hcenter | border,
+											   filler(),
+											   btn_toggle_sim->Render() | center,
+											   filler(),
+										   }) |
+										   border;
 
-	return Renderer([top, bot, col_config]
-					{ return flexbox({top | flex, bot | flex}, col_config); });
+						return hbox({info.element() | flex, separator(), right_panel | flex});
+					});
 };
 
 Component StatWindow::component()

@@ -513,9 +513,8 @@ namespace tui
 
 	class MainWindow : public Window
 	{
+		State*		state;
 		ContentCell info;
-		ContentCell authors;
-		ContentCell connect_info;
 		ContentCell reactor_state_min;
 
 	public:
@@ -525,44 +524,29 @@ namespace tui
 		MainWindow& operator=(MainWindow&&)		 = default;
 		~MainWindow() override					 = default;
 
-		MainWindow()
-			: info("Info"),
-			  authors("Authors"),
-			  connect_info("Connection"),
-			  reactor_state_min("Reactor State")
+		explicit MainWindow(State* state) : state(state), info("Info"), reactor_state_min("Reactor")
 		{
-			set_name("main");
+			set_name("Main Control");
 
 			info.get_content().add(make_text_field({.key = "Program name", .val = PROJECT_NAME}));
 			info.get_content().add(make_text_field({.key = "Version", .val = PROJECT_VERSION}));
 			info.get_content().add(make_text_field({.key = "Compiler", .val = COMPILER_INFO}));
 			info.get_content().add(make_text_field({.key = "Build date", .val = BUILD_DATE}));
 			info.get_content().add(make_text_field({.key = "Build time", .val = BUILD_TIME}));
-
-			authors.get_content().add(
+			info.get_content().add(
 				make_text_field({.key = "Authors", .val = "SamirShef, megonilus"}));
-			authors.get_content().add(make_link_field(
+			info.get_content().add(make_link_field(
 				{.key = "SamirShef", .val = "github", .link = "https://github.com/SamirShef"}));
-			authors.get_content().add(make_link_field(
+			info.get_content().add(make_link_field(
 				{.key = "megonilus", .val = "github", .link = "https://github.com/megonilus"}));
-
-			connect_info.get_content().add(make_text_field({.key = "Status", .val = "Connected"}));
-			connect_info.get_content().add(make_text_field({.key = "Ip", .val = "127.0.0.1"}));
-			connect_info.get_content().add(make_text_field({.key = "Port", .val = "12345"}));
-			connect_info.get_content().add(make_text_field({.key = "Speed", .val = "10mb/s"}));
-			connect_info.get_content().add(make_text_field({.key = "Type", .val = "TCP/IP"}));
-
-			reactor_state_min.get_content().add(make_text_field({.key = "State", .val = "NORMAL"}));
-			reactor_state_min.get_content().add(
-				make_text_field({.key = "Current temp", .val = "85.9 Celsius"}));
-			reactor_state_min.get_content().add(make_text_field({.key = "Humidity", .val = "79%"}));
-			reactor_state_min.get_content().add(
-				make_text_field({.key = "Pressure", .val = "12.9 Pa"}));
+			info.get_content().add(
+				make_link_field({.key  = "Source code",
+								 .val  = "github",
+								 .link = "https://github.com/megonilus/reactor"}));
 		}
 
 		Component component() override;
 	};
-
 	class StatWindow : public Window
 	{
 		State*		state;
@@ -626,7 +610,7 @@ namespace tui
 		Bar& operator=(Bar&&)	   = default;
 		~Bar()					   = default;
 
-		explicit Bar(State* state) : state(state), stat_window(state)
+		explicit Bar(State* state) : state(state), main_window(state), stat_window(state)
 		{
 			tab_names = std::vector<std::string>({main_window.get_name(), stat_window.get_name()});
 
