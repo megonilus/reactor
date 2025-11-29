@@ -7,9 +7,9 @@ project(
   LANGUAGES CXX)
 
 if(MSVC)
-    add_compile_options(/W4)
+  add_compile_options(/W4)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # -- Configuring
@@ -25,6 +25,7 @@ set(DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/includes")
 include_directories(${CMAKE_SOURCE_DIR}/includes/common)
 
 # -- Subdirectories(libraries)
+add_subdirectory(src/config)
 add_subdirectory(src/tui)
 add_subdirectory(src/backend)
 
