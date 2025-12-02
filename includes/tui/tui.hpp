@@ -620,7 +620,6 @@ namespace tui
 
 	class Instance
 	{
-		std::string name = "Main instance";
 		State*		state;
 
 	public:
