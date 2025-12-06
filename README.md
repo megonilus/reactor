@@ -10,7 +10,7 @@
 
 Клонирование репозитория и создание папки с билдом
 ```bash
-git clone https://github.com/megonilus/reactor
+git clone --recursive https://github.com/megonilus/reactor
 
 cd reactor
 
