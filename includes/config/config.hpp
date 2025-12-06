@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../../external/tomlplusplus/toml.hpp"
+#include <toml++/toml.hpp>
 
 constexpr double WALL_THERMAL_CONDUCTIVITY = 0.005;
 constexpr double AMBIENT_TEMPERATURE	   = 293.0;
