@@ -142,7 +142,6 @@ public:
     }
 };
 
-
 class HumidityController : public Controller {
 public:
     HumidityController(double min, double max, bool control_state = true)

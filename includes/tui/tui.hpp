@@ -3,6 +3,7 @@
 #include <cmath>
 #include <common.hpp>
 #include <cstdint>
+#include <defs.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -15,32 +16,6 @@
 #include <utility>
 #include <variant>
 #include <vector>
-
-#ifndef PROJECT_NAME
-#define PROJECT_NAME "unknown"
-#endif
-
-#ifndef PROJECT_VERSION
-#define PROJECT_VERSION "0.0.0"
-#endif
-
-#ifndef COMPILER_INFO
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-#if defined(__clang__)
-#define COMPILER_INFO "Clang " STR(__clang_major__) "." STR(__clang_minor__)
-#elif defined(__GNUC__)
-#define COMPILER_INFO "GCC " STR(__GNUC__) "." STR(__GNUC_MINOR__)
-#elif defined(_MSC_VER)
-#define COMPILER_INFO "MSVC " STR(_MSC_VER)
-#else
-#define COMPILER_INFO "Unknown"
-#endif
-#endif
-
-#define BUILD_DATE __DATE__
-#define BUILD_TIME __TIME__
-#define BUILD_MODE (#ifdef NDEBUG "Release" #else "Debug" #endif)
 
 using namespace ftxui;
 
